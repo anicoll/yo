@@ -630,12 +630,16 @@ func (a *Generator) nullcheck(field *internal.Field) string {
 	paramName := a.goparamname(field.Name)
 
 	switch field.Type {
-	case "spanner.NullInt64",
-		"spanner.NullString",
+	case "spanner.NullBool",
+		"spanner.NullDate",
+		"spanner.NullFloat32",
 		"spanner.NullFloat64",
-		"spanner.NullBool",
-		"spanner.NullTime",
-		"spanner.NullDate":
+		"spanner.NullInt64",
+		"spanner.NullInterval",
+		"spanner.NullJSON",
+		"spanner.NullNumeric",
+		"spanner.NullString",
+		"spanner.NullTime":
 		return fmt.Sprintf("%s.IsNull()", paramName)
 	}
 
