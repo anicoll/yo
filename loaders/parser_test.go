@@ -18,7 +18,7 @@ func Test_baseTableForViewDDL(t *testing.T) {
 		},
 		"JoinTable": {
 			ddlString: `CREATE VIEW SomeTypes SQL SECURITY INVOKER AS SELECT FullTypes.PKey, SecondTable.Column FROM FullTypes JOIN SecondTable USING (PKey)`,
-			wantErr:   true,
+			want:      []string{"FullTypes", "SecondTable"},
 		},
 	}
 	for name, tt := range tests {
