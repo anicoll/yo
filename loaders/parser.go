@@ -256,13 +256,39 @@ func baseTablesForViewDDL(ddlString string) ([]string, error) {
 	}
 	from := ddl.(*ast.CreateView).Query.(*ast.Select).From.Source
 
-	switch t := from.(type) {
+	return extractTablesFromSource(from)
+}
+
+// extractTablesFromSource recursively extracts tables from the AST.
+// For *ast.TableName: Returns the table name (base case).
+// For *ast.Join: Recursively extracts tables from both the left and right sides of the join, then combines them.
+// This handles nested joins (e.g., A JOIN B JOIN C).
+// SELECT * FROM orders JOIN customers ON ... → ["orders", "customers"]
+// SELECT * FROM a JOIN b JOIN c ON ... → ["a", "b", "c"]
+func extractTablesFromSource(source ast.TableExpr) ([]string, error) {
+	switch t := source.(type) {
 	case *ast.TableName:
 		return []string{t.Table.Name}, nil
 	case *ast.Join:
-		return nil, fmt.Errorf("view with join is not supported")
+		var tables []string
+
+		// Extract tables from left side
+		leftTables, err := extractTablesFromSource(t.Left)
+		if err != nil {
+			return nil, err
+		}
+		tables = append(tables, leftTables...)
+
+		// Extract tables from right side
+		rightTables, err := extractTablesFromSource(t.Right)
+		if err != nil {
+			return nil, err
+		}
+		tables = append(tables, rightTables...)
+
+		return tables, nil
 	default:
-		return nil, fmt.Errorf("unknown source type: %T", from)
+		return nil, fmt.Errorf("unknown source type: %T", source)
 	}
 }
 
