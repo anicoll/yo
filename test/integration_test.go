@@ -32,7 +32,7 @@ import (
 	"cloud.google.com/go/spanner"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/gax-go/v2/apierror"
-	"go.mercari.io/yo/loaders"
+	"github.com/roryq/yo/loaders"
 	"github.com/roryq/yo/test/testmodels/customtypes"
 	models "github.com/roryq/yo/test/testmodels/default"
 	"github.com/roryq/yo/test/testutil"

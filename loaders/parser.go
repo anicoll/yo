@@ -72,9 +72,13 @@ func NewSpannerLoaderFromDDL(fpath string) (*SpannerLoaderFromDDL, error) {
 			}
 			return nil, fmt.Errorf("stmt should be CreateTable, CreateIndex or AlterTableAddConstraint, but got '%s'", ddl.SQL())
 		case *ast.CreateView:
-			v := tables[val.Name.Name]
+			tableName, err := extractName(val.Name)
+			if err != nil {
+				return nil, err
+			}
+			v := tables[tableName]
 			v.createView = val
-			tables[val.Name.Name] = v
+			tables[tableName] = v
 		}
 	}
 
