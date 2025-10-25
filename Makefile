@@ -38,9 +38,11 @@ tplbin/templates.go: $(wildcard templates/*.tpl)
 		templates/*.tpl
 
 .PHONY: test
-test: ## run test
+test: _spanner-up ## run test
 	@echo run tests with spanner emulator
 	go test -race -v ./test
+	-@make _spanner-down
+test: export SPANNER_EMULATOR_HOST=$(S_SPANNER_PORT)
 
 testdata: ## generate test models
 	$(MAKE) -j4 testdata/default testdata/underscore testdata/customtypes testdata/single
@@ -126,3 +128,19 @@ check-diff:
 		echo "$$ACTUAL_FILES" ; \
 		exit 1 ; \
 	fi
+
+# Ephemeral Spanner Emulator test lifecycle
+# Internal targets and dynamic host port adaptation
+S_SPANNER_PORT = $(shell docker port spanner-tests 9010 | grep 0.0.0.0 | sed 's/0.0.0.0/localhost/')
+
+.PHONY: _spanner-up
+_spanner-up:
+	-@make _spanner-down >/dev/null 2>&1
+	@docker run --rm --detach -p 9010 -p 9020 \
+		--name spanner-tests \
+		roryq/spanner-emulator
+	@sleep 2
+
+.PHONY: _spanner-down
+_spanner-down:
+	-@docker stop spanner-tests > /dev/null 2>&1
